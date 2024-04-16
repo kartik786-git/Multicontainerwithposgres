@@ -1,0 +1,38 @@
+version: '3.4'
+
+networks:
+  demoappnetowrk:
+
+services:
+  postgres-container:
+    container_name: postgres-container 
+    image: postgres:latest
+    ports:
+        - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=Mypostgres@2022
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=teacherdb
+    volumes:
+       - ./data:/var/lib/postgresql/data
+    networks:
+        - demoappnetowrk
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  multicontainerwithposgres:
+    container_name: teacherms-container
+    image: ${DOCKER_REGISTRY-}multicontainerwithposgres
+    build:
+      context: .
+      dockerfile: Multicontainerwithposgres/Dockerfile
+    ports:
+        - 8010:80
+    depends_on:
+        postgres-container:
+            condition: service_healthy
+    networks:
+        - demoappnetowrk  
